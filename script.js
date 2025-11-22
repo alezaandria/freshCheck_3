@@ -276,8 +276,6 @@ purchaseDateInput.setAttribute('min', today);
 
 console.log('FreshCheck App Initialized Successfully!');
 
-// ...existing code...
-
 // ==========================================
 // PAGE NAVIGATION
 // ==========================================
@@ -322,24 +320,100 @@ document.querySelector('.profile-link').addEventListener('click', (e) => {
     navigateToPage('profile');
 });
 
-// Function to navigate to a specific page
-function navigateToPage(pageName) {
-    // Hide all pages
-    pages.forEach(page => page.classList.remove('active'));
-
-    // Show selected page
-    const page = document.getElementById(`${pageName}-page`);
-    if (page) {
-        page.classList.add('active');
-        pagesContainer.scrollTop = 0;
+// Article data (replace with real content or fetch from a server)
+const articlesData = {
+    "1": {
+        title: "5 Tips Memilih Sayuran Hijau yang Segar di Pasar",
+        image: "assets/artikel1.avif",
+        meta: "Dipublikasi: 10 Oktober 2025",
+        content: `
+            <p>1. Perhatikan warna: pilih daun yang hijau dan cerah tanpa bercak coklat.</p>
+            <p>2. Tekstur: tekan lembut daun dan batang, seharusnya terasa renyah bukan layu.</p>
+            <p>3. Bau: hindari sayuran berbau asam atau busuk.</p>
+            <p>4. Periksa akar/stem: akar yang masih segar menandakan kesegaran.</p>
+            <p>5. Beli sesuai kebutuhan agar tidak tersisa lama di rumah.</p>
+        `
+    },
+    "2": {
+        title: "Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama",
+        image: "assets/artikel1.avif",
+        meta: "Dipublikasi: 5 Oktober 2025",
+        content: `
+            <p>Simpan buah di rak tengah kulkas dalam wadah bernapas, pisahkan buah yang menghasilkan etilen (seperti pisang) dari yang sensitif.</p>
+        `
+    },
+    "3": {
+        title: "Ciri-ciri Buah yang Sudah Mulai Rusak",
+        image: "assets/artikel1.avif",
+        meta: "Dipublikasi: 1 Oktober 2025",
+        content: `
+            <p>Tanda-tanda awal: perubahan warna, bau asam, tekstur lembek, atau bercak jamur. Kenali agar bisa diselamatkan lebih awal.</p>
+        `
+    },
+    "4": {
+        title: "Memanfaatkan Sisa Sayur agar Tidak Terbuang",
+        image: "assets/artikel1.avif",
+        meta: "Dipublikasi: 20 September 2025",
+        content: `
+            <p>Gunakan sisa sayur untuk kaldu, tumisan, atau simpan potongan untuk koki berikutnya. Bekukan jika perlu.</p>
+        `
     }
+};
 
-    // Update active nav link
-    navLinks.forEach(link => link.classList.remove('active'));
-    const activeLink = document.querySelector(`[data-page="${pageName}"]`);
-    if (activeLink) {
-        activeLink.classList.add('active');
-    }
-}
+// Open article on click
+document.querySelectorAll('.education-card-large.clickable').forEach(card => {
+    card.addEventListener('click', function () {
+        const id = this.dataset.article;
+        const article = articlesData[id];
+        if (!article) return;
 
-// ...existing code...
+        // Populate the article page with content
+        document.getElementById('articleTitle').textContent = article.title;
+        document.getElementById('articleImage').src = article.image;
+        document.getElementById('articleMeta').textContent = article.meta;
+        document.getElementById('articleContent').innerHTML = article.content;
+
+        // Show the article page
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.getElementById('article-page').classList.add('active');
+
+        // Scroll to the top of the page
+        window.scrollTo(0, 0);
+    });
+});
+
+// Back button functionality
+document.getElementById('articleBackBtn').addEventListener('click', function () {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.getElementById('education-page').classList.add('active');
+    window.scrollTo(0, 0);
+});
+
+// Search functionality
+const searchInput = document.querySelector('.search-input'); // Select the search input
+const articles = document.querySelectorAll('.education-card-large'); // Select all articles
+const noResults = document.getElementById('noResults'); // Select the "No Results" message
+
+// Add event listener for search input
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase(); // Get the search query
+    let hasResults = false; // Track if any articles match the query
+
+    // Loop through all articles
+    articles.forEach(article => {
+        const title = article.querySelector('h3').innerText.toLowerCase(); // Get the article title
+        const content = article.querySelector('p').innerText.toLowerCase(); // Get the article content
+
+        // Check if the query matches the title or content
+        if (title.includes(query) || content.includes(query)) {
+            article.style.display = 'flex'; // Show matching articles
+            hasResults = true; // Set hasResults to true
+        } else {
+            article.style.display = 'none'; // Hide non-matching articles
+        }
+    });
+
+    // Show or hide the "No Results" message
+    noResults.style.display = hasResults ? 'none' : 'block';
+});
+

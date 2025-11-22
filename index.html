@@ -322,7 +322,7 @@
 
                     <!-- Banner -->
                     <div class="education-banner">
-                        <h1 class="education-banner-title">Artikel Edukasi</h1>
+                        <h1 class="education-banner-title">Panduan & Tips Kesegaran</h1>
                     </div>
 
                     <!-- Search -->
@@ -343,26 +343,102 @@
                         <article class="education-card-large clickable" data-article="2">
                             <img src="assets/artikel1.avif" alt="Article" class="article-image">
                             <div class="article-content">
-                                <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
-                                <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
+                                <h3>Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama</h3>
+                                <p>Teknik penyimpanan yang sederhana namun efektif...</p>
                             </div>
                         </article>
                         <article class="education-card-large clickable" data-article="3">
                             <img src="assets/artikel1.avif" alt="Article" class="article-image">
                             <div class="article-content">
-                                <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
-                                <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
+                                <h3>Ciri-ciri Buah yang Sudah Mulai Rusak</h3>
+                                <p>Kenali tanda awal pembusukan agar tidak terlanjur dikonsumsi...</p>
                             </div>
                         </article>
                         <article class="education-card-large clickable" data-article="4">
                             <img src="assets/artikel1.avif" alt="Article" class="article-image">
                             <div class="article-content">
-                                <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
-                                <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
+                                <h3>Memanfaatkan Sisa Sayur agar Tidak Terbuang</h3>
+                                <p>Ide-ide memasak dan penyimpanan untuk mengurangi sampah makanan...</p>
                             </div>
                         </article>
                     </div>
                 </div>
+
+                <!-- Article Detail Page -->
+                <div class="page" id="article-page">
+                    <div class="detail-header">
+                        <button class="back-btn" id="articleBackBtn">← Kembali</button>
+                    </div>
+
+                    <div class="article-detail">
+                        <img id="articleImage" src="" alt="Article Image" class="article-detail-image" style="max-width:100%;height:auto;">
+                        <h1 id="articleTitle" class="detail-title"></h1>
+                        <p id="articleMeta" class="welcome-subtitle"></p>
+                        <div id="articleContent" class="detail-content" style="margin-top:16px;line-height:1.6;"></div>
+                    </div>
+                </div>
+
+                <p id="noResults" style="display: none; text-align: center; color: var(--text-light);">
+                    Tidak ada artikel yang cocok dengan pencarian Anda.
+                </p>
+
+                <script>
+                    (function(){
+                        // article data (replace with real content or fetch from server)
+                        const articles = {
+                            "1": {
+                                title: "5 Tips Memilih Sayuran Hijau yang Segar di Pasar",
+                                image: "assets/artikel1.avif",
+                                meta: "Dipublikasi: 10 Oktober 2025",
+                                content: "<p>1. Perhatikan warna: pilih daun yang hijau dan cerah tanpa bercak coklat.</p><p>2. Tekstur: tekan lembut daun dan batang, seharusnya terasa renyah bukan layu.</p><p>3. Bau: hindari sayuran berbau asam atau busuk.</p><p>4. Periksa akar/stem: akar yang masih segar menandakan kesegaran.</p><p>5. Beli sesuai kebutuhan agar tidak tersisa lama di rumah.</p>"
+                            },
+                            "2": {
+                                title: "Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama",
+                                image: "assets/artikel1.avif",
+                                meta: "Dipublikasi: 5 Oktober 2025",
+                                content: "<p>Simpan buah di rak tengah kulkas dalam wadah bernapas, pisahkan buah yang menghasilkan etilen (seperti pisang) dari yang sensitif.</p>"
+                            },
+                            "3": {
+                                title: "Ciri-ciri Buah yang Sudah Mulai Rusak",
+                                image: "assets/artikel1.avif",
+                                meta: "Dipublikasi: 1 Oktober 2025",
+                                content: "<p>Tanda-tanda awal: perubahan warna, bau asam, tekstur lembek, atau bercak jamur. Kenali agar bisa diselamatkan lebih awal.</p>"
+                            },
+                            "4": {
+                                title: "Memanfaatkan Sisa Sayur agar Tidak Terbuang",
+                                image: "assets/artikel1.avif",
+                                meta: "Dipublikasi: 20 September 2025",
+                                content: "<p>Gunakan sisa sayur untuk kaldu, tumisan, atau simpan potongan untuk koki berikutnya. Bekukan jika perlu.</p>"
+                            }
+                        };
+
+                        // open article on click
+                        document.querySelectorAll('.education-card-large.clickable').forEach(card=>{
+                            card.addEventListener('click', function(){
+                                const id = this.dataset.article;
+                                const a = articles[id];
+                                if(!a) return;
+                                // fill article page
+                                document.getElementById('articleTitle').textContent = a.title;
+                                document.getElementById('articleImage').src = a.image;
+                                document.getElementById('articleMeta').textContent = a.meta;
+                                document.getElementById('articleContent').innerHTML = a.content;
+                                // show article page (toggle active classes)
+                                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                                document.getElementById('article-page').classList.add('active');
+                                // scroll top
+                                window.scrollTo(0,0);
+                            });
+                        });
+
+                        // back button
+                        document.getElementById('articleBackBtn').addEventListener('click', function(){
+                            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                            document.getElementById('education-page').classList.add('active');
+                            window.scrollTo(0,0);
+                        });
+                    })();
+                </script>
 
                 <!-- Detail Page -->
                 <div class="page" id="detail-page">
@@ -415,6 +491,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <div class="page" id="profile-page">
                     <section class="welcome-section">
