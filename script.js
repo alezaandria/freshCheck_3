@@ -275,3 +275,71 @@ const today = new Date().toISOString().split('T')[0];
 purchaseDateInput.setAttribute('min', today);
 
 console.log('FreshCheck App Initialized Successfully!');
+
+// ...existing code...
+
+// ==========================================
+// PAGE NAVIGATION
+// ==========================================
+
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = link.getAttribute('data-page');
+        navigateToPage(page);
+        closeSidebar();
+    });
+});
+
+// Also handle view-more buttons
+document.querySelectorAll('.view-more').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = btn.getAttribute('data-page');
+        if (page) {
+            navigateToPage(page);
+        }
+    });
+});
+
+// Handle card clicks for detail page
+document.querySelectorAll('.analysis-card.clickable').forEach(card => {
+    card.addEventListener('click', () => {
+        navigateToPage('detail');
+    });
+});
+
+// Handle education card clicks
+document.querySelectorAll('.education-card-large.clickable').forEach(card => {
+    card.addEventListener('click', () => {
+        navigateToPage('detail');
+    });
+});
+
+// Add navigation for profile page
+document.querySelector('.profile-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    navigateToPage('profile');
+});
+
+// Function to navigate to a specific page
+function navigateToPage(pageName) {
+    // Hide all pages
+    pages.forEach(page => page.classList.remove('active'));
+
+    // Show selected page
+    const page = document.getElementById(`${pageName}-page`);
+    if (page) {
+        page.classList.add('active');
+        pagesContainer.scrollTop = 0;
+    }
+
+    // Update active nav link
+    navLinks.forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`[data-page="${pageName}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
+// ...existing code...

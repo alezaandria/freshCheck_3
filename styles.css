@@ -1096,3 +1096,76 @@ body {
         font-size: 18px;
     }
 }
+
+/* Profile Page Styles */
+#profile-page {
+    padding: 20px;
+    background-color: var(--background-color);
+    overflow-y: auto;
+}
+
+#welcome-section {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--secondary-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.welcome-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.welcome-subtitle {
+    font-size: 16px;
+    color: var(--text-light);
+    margin-top: 8px;
+}
+
+/* Form Section */
+.form-section {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    border-color: var(--primary-color);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.form-actions .btn {
+    width: 48%;
+}
