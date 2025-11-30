@@ -1,14 +1,806 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreshCheck</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
+    <title>FreshCheck - Cek Kesegaran Buah & Sayur</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#0070F3',
+                        'secondary': '#6B7280',
+                        'fresh': '#10B981', /* Emerald */
+                        'moderate': '#FBBF24', /* Amber */
+                        'rotten': '#EF4444', /* Red */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --primary: #0070F3;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e40af;
+            --fresh: #10B981;
+            --moderate: #FBBF24;
+            --rotten: #EF4444;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --bg-light: #F9FAFB;
+        }
 
+        .app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 500px;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            position: relative;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* --- Header --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #E5E7EB;
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+        }
+        .logo-img {
+            height: 28px;
+            width: auto;
+            content: url('https://placehold.co/100x28/0070F3/FFFFFF?text=FreshCheck');
+        }
+        .profile-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 9999px;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        .menu-btn {
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            max-width: 300px;
+            height: 100%;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 50;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+        .close-sidebar {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: background-color 0.2s;
+        }
+        .nav-link.active, .nav-link:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        .nav-icon {
+            font-size: 1.25rem;
+        }
+
+        /* --- Pages Container --- */
+        .pages-container {
+            flex-grow: 1;
+            position: relative;
+            padding: 0 1rem 2rem 1rem;
+        }
+        .page {
+            display: none;
+            width: 100%;
+            transition: opacity 0.3s;
+        }
+        .page.active {
+            display: block;
+        }
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            padding-top: 0.5rem;
+        }
+
+
+        /* --- Buttons --- */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: #E5E7EB;
+            color: var(--text-dark);
+            border: 1px solid #D1D5DB;
+        }
+        .btn-secondary:hover {
+            background-color: #D1D5DB;
+        }
+        .btn-large {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.125rem;
+        }
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            background-color: #F3F4F6;
+            color: var(--text-dark);
+            border: 1px solid #E5E7EB;
+        }
+        .btn-center {
+            margin: 1.5rem 0;
+        }
+        .btn-icon {
+            font-size: 1.25rem;
+        }
+
+        /* --- Home Page Specifics --- */
+        .slider-container {
+            overflow: hidden;
+            border-radius: 0.75rem;
+            margin: 1rem 0 1.5rem 0;
+            position: relative;
+        }
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+        .slide-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            flex-shrink: 0;
+            content: url('https://images.unsplash.com/photo-1542838132-841961e6c382?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        }
+        .slider-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: none;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .slider-dot.active {
+            background-color: white;
+        }
+        .slider-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .welcome-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .brand-title {
+            font-size: 2.25rem;
+            font-weight: 900;
+            margin-top: -0.5rem;
+        }
+        .brand-fresh {
+            color: var(--fresh);
+        }
+        .brand-check {
+            color: var(--primary);
+        }
+
+        /* --- Card Styles (Used in Home, History, Check) --- */
+        .analysis-section {
+            margin-top: 1.5rem;
+        }
+        .analysis-section h2, .analysis-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .view-more {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            background: none;
+            border: none;
+        }
+        .view-more-icon {
+            width: 16px;
+            height: 16px;
+            content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="%230070F3"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>');
+        }
+        .analysis-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .analysis-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: var(--bg-light);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .analysis-card.clickable {
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .analysis-card.clickable:hover {
+            transform: translateY(-2px);
+        }
+        .card-left {
+            flex-grow: 1;
+        }
+        .status-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        .fresh-label { background-color: var(--fresh); }
+        .moderate-label { background-color: var(--moderate); }
+        .rotten-label { background-color: var(--rotten); }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .card-date {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+        .card-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+        }
+
+        .analysis-cards.full-width {
+            flex-direction: column;
+        }
+
+        /* --- Education Section --- */
+        .education-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .education-card {
+            display: flex;
+            gap: 0.75rem;
+            background-color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+        .education-card-large {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        .education-card-large:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .education-image, .article-image {
+            width: 80px;
+            height: 80px;
+            min-width: 80px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .education-content h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+        .education-content p {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        .education-banner {
+            background-image: linear-gradient(to right, var(--fresh), var(--primary-light));
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .education-banner-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        /* --- Check Page (Steps) --- */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 9999px;
+            border: 2px solid #D1D5DB;
+            color: #D1D5DB;
+            font-weight: 700;
+            background-color: white;
+            transition: all 0.3s;
+        }
+        .step.active {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .step.completed {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        .step-line {
+            width: 50px;
+            height: 2px;
+            background-color: #D1D5DB;
+            margin: 0 0.5rem;
+        }
+
+        .upload-section {
+            padding: 1rem 0;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .upload-title {
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+        .upload-title h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .fruit-emoji {
+            font-size: 2rem;
+            margin-top: 0.5rem;
+        }
+        .upload-btn {
+            margin-bottom: 1rem;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        .preview-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+            width: 100%;
+        }
+        #previewImg {
+            width: calc(100% - 100px); /* 100px for the button width + gap */
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- Form Styles (Step 2) --- */
+        .form-section {
+            padding: 1rem 0;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .date-input {
+            position: relative;
+        }
+        .date-input .form-input {
+            padding-right: 3rem;
+        }
+        .date-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--primary);
+        }
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .form-actions .btn {
+            flex: 1;
+        }
+
+        /* --- Detail Page --- */
+        .detail-header {
+            padding: 1rem 0;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .detail-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .detail-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .detail-status {
+            font-size: 1.125rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+        .detail-status.fresh { background-color: var(--fresh); }
+        .detail-status.moderate { background-color: var(--moderate); }
+        .detail-status.rotten { background-color: var(--rotten); }
+
+        .detail-info {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-top: 1px solid #E5E7EB;
+            border-bottom: 1px solid #E5E7EB;
+            margin-bottom: 1.5rem;
+        }
+        .info-item {
+            flex: 1;
+            text-align: center;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .detail-freshness {
+            padding: 1rem;
+            background-color: var(--bg-light);
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+        .freshness-bar {
+            background-color: #E5E7EB;
+            height: 12px;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .freshness-fill {
+            height: 100%;
+            background-color: var(--fresh);
+            transition: width 0.5s ease-out;
+            border-radius: 9999px;
+        }
+        .freshness-fill.moderate { background-color: var(--moderate); }
+        .freshness-fill.rotten { background-color: var(--rotten); }
+        .freshness-text {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        .detail-tips .tips-section {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .tips-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .tips-icon {
+            font-size: 1.5rem;
+        }
+        .tips-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            flex-grow: 1;
+        }
+        .tips-text {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Loading Indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+        .modal-message {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+        }
+        .modal-actions .btn {
+            width: 100%;
+        }
+
+    </style>
+</head>
 <body>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p>Menganalisis kesegaran...</p>
+    </div>
+
+    <!-- Custom Alert/Confirmation Modal -->
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <p class="modal-message" id="modalMessage"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="modalOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
@@ -16,7 +808,7 @@
                 <button class="close-sidebar" id="closeSidebar">✕</button>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-link" data-page="home">
+                <a href="#" class="nav-link active" data-page="home">
                     <span class="nav-icon">🏠</span>
                     <span>Beranda</span>
                 </a>
@@ -44,10 +836,11 @@
             <header class="header">
                 <button class="menu-btn" id="menuBtn">☰</button>
                 <div class="logo-container">
-                    <img src="assets/logo.png" alt="FreshCheck Logo" class="logo-img">
+                    <!-- Logo is set via CSS content property in style block -->
                 </div>
-                <a href="profile.html" class="profile-link">
-                    <img src="assets/profile.jpg" alt="Profile" class="profile-img">
+                <!-- Profile Link: Use a placeholder image URL -->
+                <a href="#" class="profile-link" data-page="profile">
+                    <img src="https://placehold.co/36x36/60A5FA/FFFFFF?text=P" onerror="this.src='https://placehold.co/36x36/60A5FA/FFFFFF?text=P';" alt="Profile" class="profile-img">
                 </a>
             </header>
 
@@ -55,19 +848,16 @@
             <div class="pages-container">
                 <!-- Home Page -->
                 <div class="page active" id="home-page">
-
-
                     <!-- Image Slider -->
                     <div class="slider-container">
-                        <div class="slider">
-                            <img src="assets/slider1.avif" alt="Fresh vegetables" class="slide-image">
-                            <img src="assets/slider2.avif" alt="Fresh fruits" class="slide-image">
-                            <img src="assets/slider3.avif" alt="Fresh greens" class="slide-image">
+                        <div class="slider" id="homeSlider">
+                            <!-- Image URL placeholders are provided via CSS content property above -->
+                            <img alt="Fresh vegetables" class="slide-image">
+                            <img alt="Fresh fruits" class="slide-image" style="content: url('https://images.unsplash.com/photo-1596707328574-8a4073d84358?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
+                            <img alt="Fresh greens" class="slide-image" style="content: url('https://images.unsplash.com/photo-1550980482-1264b975877c?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
                         </div>
-                        <div class="slider-controls">
-                            <button class="slider-dot active" data-slide="0"></button>
-                            <button class="slider-dot" data-slide="1"></button>
-                            <button class="slider-dot" data-slide="2"></button>
+                        <div class="slider-controls" id="sliderControls">
+                            <!-- Dots generated by JS -->
                         </div>
                     </div>
 
@@ -75,7 +865,6 @@
                     <div class="welcome-section">
                         <p class="welcome-subtitle">Freshness isn't luck, it's choice.</p>
                         <h1 class="welcome-title">Selamat Datang di</h1>
-
                         <h1 class="welcome-title brand-title">
                             <span class="brand-fresh">Fresh</span><span class="brand-check">Check!</span>
                         </h1>
@@ -85,37 +874,21 @@
                     <div class="btn-center">
                         <button class="btn btn-primary btn-large" id="checkFreshnessBtn">
                             Cek Kesegaran
-                         </button>
+                        </button>
                     </div>
-
 
                     <!-- Recent Analysis Section -->
                     <section class="analysis-section">
                         <div class="section-header">
                             <h2>Riwayat analisis terbaru</h2>
-                            <button class="view-more" data-page="History">
-                                <img src="assets/right.png" alt="View More" class="view-more-icon">
+                            <button class="view-more" data-page="history">
+                                <span>Lihat Semua</span>
+                                <div class="view-more-icon"></div>
                             </button>
                         </div>
-                        <div class="analysis-cards">
-                            <div class="analysis-card fresh">
-                                <div class="card-left">
-                                    <div class="status-label fresh-label">Segar</div>
-                                    <h3 class="card-title">Apel Merah</h3>
-                                    <p class="card-date">2 jam yang lalu</p>
-                                </div>
-                                <img src="assets/apple.avif" alt="Apple" class="card-image">
-                            </div>
-                            <div class="analysis-card moderate clickable" data-name="Jeruk" data-status="Cukup Segar" data-status-class="moderate" data-image="assets/orange.avif" data-purchase="20 Oktober 2025" data-rotten="2 hari" data-estimasi="23 Oktober 2025" data-freshness="50">
-
-                                <div class="card-left">
-                                    <div class="status-label moderate-label">Cukup Segar</div>
-                                    <h3 class="card-title">Jeruk</h3>
-                                    <p class="card-date">10 jam yang lalu</p>
-                                </div>
-                                <img src="assets/orange.avif" alt="Orange" class="card-image">
-                            </div>
-
+                        <div class="analysis-cards" id="homeRecentHistory">
+                            <!-- Dynamic history items loaded here -->
+                            <div class="text-center text-gray-400 p-4" id="homeNoHistory">Belum ada riwayat analisis.</div>
                         </div>
                     </section>
 
@@ -124,34 +897,34 @@
                         <div class="section-header">
                             <h2>Artikel edukasi terbaru</h2>
                             <button class="view-more" data-page="education">
-                                <img src="assets/right.png" alt="View More" class="view-more-icon">
+                                <span>Lihat Semua</span>
+                                <div class="view-more-icon"></div>
                             </button>
                         </div>
-                        <div class="education-cards">
-                            <article class="education-card">
-                                <img src="assets/artikel1.avif" alt="Article" class="education-image">
+                        <div class="education-cards" id="homeEducationCards">
+                            <!-- Mock cards to show structure -->
+                            <article class="education-card clickable" data-article="1">
+                                <img src="https://images.unsplash.com/photo-1582284087738-a1c0d73a8b5f?q=80&w=100&h=100&fit=crop" onerror="this.src='https://placehold.co/80x80/60A5FA/FFFFFF?text=Artikel'" alt="Article" class="education-image">
                                 <div class="education-content">
-                                    <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
+                                    <h3>5 Tips Memilih Sayuran Hijau</h3>
                                     <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
                                 </div>
                             </article>
-                            <article class="education-card">
-                                <img src="assets/artikel1.avif" alt="Article" class="education-image">
+                            <article class="education-card clickable" data-article="2">
+                                <img src="https://images.unsplash.com/photo-1543168256-418816c7a36c?q=80&w=100&h=100&fit=crop" onerror="this.src='https://placehold.co/80x80/60A5FA/FFFFFF?text=Artikel'" alt="Article" class="education-image">
                                 <div class="education-content">
-                                    <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
-                                    <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
+                                    <h3>Cara Menyimpan Buah di Kulkas</h3>
+                                    <p>Teknik penyimpanan yang sederhana namun efektif...</p>
                                 </div>
                             </article>
                         </div>
                     </section>
                 </div>
 
-                <!-- Check Freshness Page -->
+                <!-- Check Freshness Page (Step 1: Image Upload) -->
                 <div class="page" id="check-page">
-
-
-                    <!-- Step Indicator -->
-                    <div class="step-indicator">
+                    <!-- Step Indicator 1 -->
+                    <div class="step-indicator" id="stepIndicator1">
                         <div class="step active">
                             <div class="step-number">1</div>
                         </div>
@@ -162,7 +935,7 @@
                     </div>
 
                     <!-- Upload Section -->
-                    <div class="upload-section">
+                    <div class="upload-section" id="uploadSection">
                         <div class="upload-title">
                             <h2>Unggah atau ambil foto Buah/Sayur kamu!</h2>
                             <div class="fruit-emoji">🍎 🥬</div>
@@ -184,39 +957,27 @@
 
                     <!-- Preview Image -->
                     <div class="image-preview" id="imagePreview" style="display: none;">
-
                         <div class="preview-row">
-                            <img id="previewImg" src="/placeholder.svg" alt="Preview">
-                            <button class="btn btn-small" id="retakeBtn">Ganti Foto</button>
+                            <!-- Placeholder image for the preview -->
+                            <img id="previewImg" src="https://placehold.co/200x200/CCCCCC/333333?text=Foto" alt="Preview Image" onerror="this.src='https://placehold.co/200x200/CCCCCC/333333?text=Foto';">
+                            <button class="btn btn-small btn-secondary" id="retakeBtn">Ganti Foto</button>
                         </div>
-
-                        <button class="btn btn-primary btn-large" id="proceedBtn">Lanjutkan ></button>
-
+                        <button class="btn btn-primary btn-large" id="proceedBtn">Lanjutkan &rarr;</button>
                     </div>
 
-
-                    <!-- Recent Analysis for reference -->
+                    <!-- Recent Analysis for reference (Placeholder section) -->
                     <section class="analysis-section">
                         <h3>Riwayat Analisis</h3>
-                        <div class="analysis-cards">
-                            <div class="analysis-card fresh">
-                                <div class="card-left">
-                                    <div class="status-label fresh-label">Segar</div>
-                                    <h3 class="card-title">Apel Merah</h3>
-                                    <p class="card-date">2 jam yang lalu</p>
-                                </div>
-                                <img src="assets/apple.avif" alt="Apple" class="card-image">
-                            </div>
+                        <div class="analysis-cards" id="checkRecentHistory">
+                             <div class="text-center text-gray-400 p-4" id="checkNoHistory">Belum ada riwayat analisis.</div>
                         </div>
                     </section>
                 </div>
 
-                <!-- Form Page (Step 2) -->
+                <!-- Form Page (Step 2: Metadata) -->
                 <div class="page" id="form-page">
-
-
-                    <!-- Step Indicator -->
-                    <div class="step-indicator">
+                    <!-- Step Indicator 2 -->
+                    <div class="step-indicator" id="stepIndicator2">
                         <div class="step completed">
                             <div class="step-number">✓</div>
                         </div>
@@ -229,7 +990,7 @@
                     <!-- Form Section -->
                     <div class="form-section">
                         <div class="form-group">
-                            <label>Jenis Buah / Sayur</label>
+                            <label for="fruitType">Jenis Buah / Sayur</label>
                             <select class="form-select" id="fruitType">
                                 <option value="">Pilih jenis...</option>
                                 <option value="apple">Apel</option>
@@ -241,7 +1002,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Metode Penyimpanan</label>
+                            <label for="storageMethod">Metode Penyimpanan</label>
                             <select class="form-select" id="storageMethod">
                                 <option value="">Pilih metode...</option>
                                 <option value="room">Suhu Ruangan</option>
@@ -251,7 +1012,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Tanggal Pembelian</label>
+                            <label for="purchaseDate">Tanggal Pembelian</label>
                             <div class="date-input">
                                 <input type="date" id="purchaseDate" class="form-input">
                                 <span class="date-icon">📅</span>
@@ -259,67 +1020,31 @@
                         </div>
 
                         <div class="form-actions">
-                            <button class="btn btn-secondary" id="backBtn">Kembali</button>
-                            <button class="btn btn-primary" id="checkBtn">Cek</button>
+                            <button class="btn btn-secondary" id="backBtn">← Kembali</button>
+                            <button class="btn btn-primary" id="checkBtn">Cek &rarr;</button>
                         </div>
                     </div>
 
-                    <!-- Analysis Cards -->
+                    <!-- Analysis Cards (for consistency) -->
                     <section class="analysis-section">
                         <h3>Riwayat Analisis</h3>
-                        <div class="analysis-cards">
-                            <div class="analysis-card fresh">
-                                <div class="card-left">
-                                    <div class="status-label fresh-label">Segar</div>
-                                    <h3 class="card-title">Apel Merah</h3>
-                                    <p class="card-date">2 jam yang lalu</p>
-                                </div>
-                                <img src="assets/apple.avif" alt="Apple" class="card-image">
-                            </div>
+                        <div class="analysis-cards" id="formRecentHistory">
+                            <div class="text-center text-gray-400 p-4">Belum ada riwayat analisis.</div>
                         </div>
                     </section>
                 </div>
 
                 <!-- History Page -->
                 <div class="page" id="history-page">
-
-
                     <h1 class="page-title">Riwayat Analisis</h1>
-
-                    <div class="analysis-cards full-width">
-                        <div class="analysis-card fresh clickable">
-                            <div class="card-left">
-                                <div class="status-label fresh-label">Segar</div>
-                                <h3 class="card-title">Apel Merah</h3>
-                                <p class="card-date">2 jam yang lalu</p>
-                            </div>
-                            <img src="https://images.unsplash.com/photo-1582284087738-a1c0d73a8b5f?w=100&h=100&fit=crop" alt="Apple" class="card-image">
-                        </div>
-                        <div class="analysis-card moderate clickable" data-name="Jeruk" data-status="Cukup Segar" data-status-class="moderate" data-image="assets/orange.avif" data-purchase="20 Oktober 2025" data-rotten="2 hari" data-estimasi="23 Oktober 2025" data-freshness="50">
-
-                            <div class="card-left">
-                                <div class="status-label moderate-label">Cukup Segar</div>
-                                <h3 class="card-title">Jeruk</h3>
-                                <p class="card-date">10 jam yang lalu</p>
-                            </div>
-                            <img src="assets/orange.avif" alt="Orange" class="card-image">
-                        </div>
-
-                        <div class="analysis-card rotten clickable">
-                            <div class="card-left">
-                                <div class="status-label rotten-label">Busuk</div>
-                                <h3 class="card-title">Timun</h3>
-                                <p class="card-date">2 hari yang lalu</p>
-                            </div>
-                            <img src="https://images.unsplash.com/photo-1590959375944-abd886e37c00?w=100&h=100&fit=crop" alt="Cucumber" class="card-image">
-                        </div>
+                    <div class="analysis-cards full-width" id="fullHistoryList">
+                        <!-- Dynamic full history loaded here -->
+                        <div class="text-center text-gray-400 p-4" id="fullNoHistory">Tidak ada riwayat. Mulai cek pertama Anda!</div>
                     </div>
                 </div>
 
                 <!-- Education Page -->
                 <div class="page" id="education-page">
-
-
                     <!-- Banner -->
                     <div class="education-banner">
                         <h1 class="education-banner-title">Panduan & Tips Kesegaran</h1>
@@ -327,41 +1052,17 @@
 
                     <!-- Search -->
                     <div class="search-container">
-                        <input type="text" class="search-input" placeholder="Cari artikel...">
+                        <input type="text" class="search-input" id="educationSearch" placeholder="Cari artikel...">
                         <span class="search-icon">🔍</span>
                     </div>
 
                     <!-- Articles List -->
-                    <div class="articles-list">
-                        <article class="education-card-large clickable" data-article="1">
-                            <img src="assets/artikel1.avif" alt="Article" class="article-image">
-                            <div class="article-content">
-                                <h3>5 Tips Memilih Sayuran Hijau yang Segar di Pasar</h3>
-                                <p>Pelajari cara mudah untuk memastikan Anda membawa pulang sayuran terbaik...</p>
-                            </div>
-                        </article>
-                        <article class="education-card-large clickable" data-article="2">
-                            <img src="assets/artikel1.avif" alt="Article" class="article-image">
-                            <div class="article-content">
-                                <h3>Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama</h3>
-                                <p>Teknik penyimpanan yang sederhana namun efektif...</p>
-                            </div>
-                        </article>
-                        <article class="education-card-large clickable" data-article="3">
-                            <img src="assets/artikel1.avif" alt="Article" class="article-image">
-                            <div class="article-content">
-                                <h3>Ciri-ciri Buah yang Sudah Mulai Rusak</h3>
-                                <p>Kenali tanda awal pembusukan agar tidak terlanjur dikonsumsi...</p>
-                            </div>
-                        </article>
-                        <article class="education-card-large clickable" data-article="4">
-                            <img src="assets/artikel1.avif" alt="Article" class="article-image">
-                            <div class="article-content">
-                                <h3>Memanfaatkan Sisa Sayur agar Tidak Terbuang</h3>
-                                <p>Ide-ide memasak dan penyimpanan untuk mengurangi sampah makanan...</p>
-                            </div>
-                        </article>
+                    <div class="articles-list" id="articlesList">
+                        <!-- Dynamic articles loaded here based on search -->
                     </div>
+                     <p id="noEducationResults" style="display: none; text-align: center; color: var(--text-light); margin-top: 2rem;">
+                        Tidak ada artikel yang cocok dengan pencarian Anda.
+                    </p>
                 </div>
 
                 <!-- Article Detail Page -->
@@ -371,96 +1072,35 @@
                     </div>
 
                     <div class="article-detail">
-                        <img id="articleImage" src="" alt="Article Image" class="article-detail-image" style="max-width:100%;height:auto;">
+                        <!-- Placeholder image, dynamically updated -->
+                        <img id="articleImage" src="https://placehold.co/400x200/CCCCCC/333333?text=Artikel" alt="Article Image" class="article-detail-image">
                         <h1 id="articleTitle" class="detail-title"></h1>
                         <p id="articleMeta" class="welcome-subtitle"></p>
-                        <div id="articleContent" class="detail-content" style="margin-top:16px;line-height:1.6;"></div>
+                        <div id="articleContent" class="detail-content"></div>
                     </div>
                 </div>
 
-                <p id="noResults" style="display: none; text-align: center; color: var(--text-light);">
-                    Tidak ada artikel yang cocok dengan pencarian Anda.
-                </p>
-
-                <script>
-                    (function(){
-                        // article data (replace with real content or fetch from server)
-                        const articles = {
-                            "1": {
-                                title: "5 Tips Memilih Sayuran Hijau yang Segar di Pasar",
-                                image: "assets/artikel1.avif",
-                                meta: "Dipublikasi: 10 Oktober 2025",
-                                content: "<p>1. Perhatikan warna: pilih daun yang hijau dan cerah tanpa bercak coklat.</p><p>2. Tekstur: tekan lembut daun dan batang, seharusnya terasa renyah bukan layu.</p><p>3. Bau: hindari sayuran berbau asam atau busuk.</p><p>4. Periksa akar/stem: akar yang masih segar menandakan kesegaran.</p><p>5. Beli sesuai kebutuhan agar tidak tersisa lama di rumah.</p>"
-                            },
-                            "2": {
-                                title: "Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama",
-                                image: "assets/artikel1.avif",
-                                meta: "Dipublikasi: 5 Oktober 2025",
-                                content: "<p>Simpan buah di rak tengah kulkas dalam wadah bernapas, pisahkan buah yang menghasilkan etilen (seperti pisang) dari yang sensitif.</p>"
-                            },
-                            "3": {
-                                title: "Ciri-ciri Buah yang Sudah Mulai Rusak",
-                                image: "assets/artikel1.avif",
-                                meta: "Dipublikasi: 1 Oktober 2025",
-                                content: "<p>Tanda-tanda awal: perubahan warna, bau asam, tekstur lembek, atau bercak jamur. Kenali agar bisa diselamatkan lebih awal.</p>"
-                            },
-                            "4": {
-                                title: "Memanfaatkan Sisa Sayur agar Tidak Terbuang",
-                                image: "assets/artikel1.avif",
-                                meta: "Dipublikasi: 20 September 2025",
-                                content: "<p>Gunakan sisa sayur untuk kaldu, tumisan, atau simpan potongan untuk koki berikutnya. Bekukan jika perlu.</p>"
-                            }
-                        };
-
-                        // open article on click
-                        document.querySelectorAll('.education-card-large.clickable').forEach(card=>{
-                            card.addEventListener('click', function(){
-                                const id = this.dataset.article;
-                                const a = articles[id];
-                                if(!a) return;
-                                // fill article page
-                                document.getElementById('articleTitle').textContent = a.title;
-                                document.getElementById('articleImage').src = a.image;
-                                document.getElementById('articleMeta').textContent = a.meta;
-                                document.getElementById('articleContent').innerHTML = a.content;
-                                // show article page (toggle active classes)
-                                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                                document.getElementById('article-page').classList.add('active');
-                                // scroll top
-                                window.scrollTo(0,0);
-                            });
-                        });
-
-                        // back button
-                        document.getElementById('articleBackBtn').addEventListener('click', function(){
-                            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                            document.getElementById('education-page').classList.add('active');
-                            window.scrollTo(0,0);
-                        });
-                    })();
-                </script>
-
-                <!-- Detail Page -->
+                <!-- Detail Page (Prediction Result) -->
                 <div class="page" id="detail-page">
                     <div class="detail-header">
                         <button class="back-btn" id="detailBackBtn">← Kembali</button>
                     </div>
 
                     <div class="detail-content">
-                        <img id="detailImage" src="assets/apple.avif" alt="Product" class="detail-image">
-
-                        <h1 id="detailTitle" class="detail-title">Apel</h1>
-                        <p id="detailStatus" class="detail-status rotten">Busuk</p>
+                        <!-- Image and data filled by JS after prediction -->
+                        <img id="detailImage" src="https://placehold.co/400x250/CCCCCC/333333?text=Hasil+Analisis" alt="Product" class="detail-image">
+                        <h1 id="detailTitle" class="detail-title"></h1>
+                        <p id="detailStatus" class="detail-status"></p>
 
                         <div class="detail-info">
                             <div class="info-row">
                                 <div class="info-item">
                                     <p class="info-label">Tanggal Pembelian</p>
-                                    <p class="info-value">19 Oktober 2025</p>
+                                    <p class="info-value" id="infoPurchaseDate"></p>
                                 </div>
                                 <div class="info-item">
-                                    <p class="info-label">Estimasi Busuk dalam</p>
-                                    <p class="info-value">1 hari</p>
+                                    <p class="info-label">Penyimpanan</p>
+                                    <p class="info-value" id="infoStorageMethod"></p>
                                 </div>
                             </div>
                         </div>
@@ -468,54 +1108,37 @@
                         <div class="detail-freshness">
                             <p class="detail-label">Indikator Kesegaran</p>
                             <div class="freshness-bar">
-                                <div class="freshness-fill" style="width: 20%;"></div>
+                                <div class="freshness-fill" id="freshnessFill"></div>
                             </div>
-                            <p class="freshness-text">Estimasi Tanggal Busuk<br>24 Oktober 2025</p>
+                            <p class="freshness-text" id="freshnessText"></p>
                         </div>
 
-                        <div class="detail-tips">
-                            <div class="tips-section">
-                                <div class="tips-header">
-                                    <span class="tips-icon">⭐</span>
-                                    <p class="tips-title">Berdasarkan warna kulit dan tekstur, apel ini sudah busuk.</p>
-                                </div>
-                            </div>
-
-                            <div class="tips-section">
-                                <div class="tips-header">
-                                    <span class="tips-icon">💡</span>
-                                    <p class="tips-title">Tips Penyimpanan</p>
-                                </div>
-                                <p class="tips-text">Simpan pada di kulkas 4-6 C agar tahan hingga 2 minggu.</p>
-                            </div>
+                        <div class="detail-tips" id="detailTips">
+                            <!-- Tips generated dynamically -->
                         </div>
                     </div>
                 </div>
 
-
+                <!-- Profile Page -->
                 <div class="page" id="profile-page">
                     <section class="welcome-section">
-                        <h1 class="welcome-title">Your Profile</h1>
-                        <p class="welcome-subtitle">Manage your personal information below.</p>
+                        <h1 class="welcome-title">Profil Pengguna</h1>
+                        <p class="welcome-subtitle">ID Pengguna: <span id="displayUserId">...</span></p>
+                        <p class="welcome-subtitle">Kelola informasi pribadi Anda.</p>
                     </section>
 
                     <section class="form-section">
-                        <form>
+                        <form onsubmit="return false;">
                             <div class="form-group">
-                                <label for="name">Name</label>
-                                <input type="text" id="name" class="form-input" placeholder="Enter your name">
+                                <label for="name">Nama</label>
+                                <input type="text" id="name" class="form-input" placeholder="Masukkan nama Anda">
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input type="email" id="email" class="form-input" placeholder="Enter your email">
-                            </div>
-                            <div class="form-group">
-                                <label for="password">Password</label>
-                                <input type="password" id="password" class="form-input" placeholder="Enter your password">
+                                <input type="email" id="email" class="form-input" placeholder="Masukkan email Anda" disabled>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                                <button type="reset" class="btn btn-secondary">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                             </div>
                         </form>
                     </section>
@@ -523,5 +1146,621 @@
             </div>
         </main>
     </div>
-    <script src="script.js"></script>
+
+    <!-- Main Application Script -->
+    <script type="module">
+        // --- 1. FIREBASE SETUP & AUTH (MANDATORY for persistence) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, onSnapshot, collection, query, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase Variables (Provided by Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'freshcheck-default-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth;
+        let userId = null;
+        let isAuthReady = false;
+
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Auth listener to initialize the app logic after sign-in
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                } else {
+                    // Fallback to anonymous sign-in if no token provided
+                    signInAnonymously(auth).then(cred => {
+                        userId = cred.user.uid;
+                        console.log("Signed in anonymously. User ID:", userId);
+                    }).catch(error => {
+                        console.error("Anonymous sign-in failed:", error);
+                        userId = crypto.randomUUID(); // Fallback UUID
+                    });
+                }
+                document.getElementById('displayUserId').textContent = userId;
+                isAuthReady = true;
+                // Fetch history only after auth is ready
+                setupHistoryListeners();
+            });
+
+            // Handle custom token login if available
+            if (initialAuthToken) {
+                signInWithCustomToken(auth, initialAuthToken).catch(error => {
+                    console.error("Custom token sign-in failed:", error);
+                });
+            }
+        } else {
+            // Handle environment where Firebase config is not available
+            console.warn("Firebase configuration not found. History features disabled.");
+            userId = crypto.randomUUID(); // Fallback UUID
+            isAuthReady = true;
+            document.getElementById('displayUserId').textContent = "Offline Mode - " + userId.substring(0, 8);
+        }
+
+        // --- 2. GLOBAL STATE AND CONSTANTS ---
+        let imageFile = null; // Stores the File object for prediction
+        let recentHistoryData = []; // Store up to 2 latest history items
+        let fullHistoryData = []; // Store all history items
+
+        const API_URL = "http://localhost:8000/predict"; // !!! UPDATE THIS URL !!!
+
+        const storageMethodMap = {
+            'room': 'Suhu Ruangan',
+            'fridge': 'Kulkas',
+            'freezer': 'Freezer'
+        };
+
+        const statusStyleMap = {
+            'fresh': { label: 'Segar', class: 'fresh', fillClass: 'fresh' },
+            'moderate': { label: 'Cukup Segar', class: 'moderate', fillClass: 'moderate' },
+            'rotten': { label: 'Busuk', class: 'rotten', fillClass: 'rotten' }
+        };
+
+        const ARTICLE_DATA = {
+            "1": {
+                title: "5 Tips Memilih Sayuran Hijau yang Segar di Pasar",
+                image: "https://images.unsplash.com/photo-1582284087738-a1c0d73a8b5f?q=80&w=400&h=200&fit=crop",
+                meta: "Dipublikasi: 10 Oktober 2025",
+                content: "<p>1. Perhatikan warna: pilih daun yang hijau dan cerah tanpa bercak coklat.</p><p>2. Tekstur: tekan lembut daun dan batang, seharusnya terasa renyah bukan layu.</p><p>3. Bau: hindari sayuran berbau asam atau busuk.</p><p>4. Periksa akar/stem: akar yang masih segar menandakan kesegaran.</p><p>5. Beli sesuai kebutuhan agar tidak tersisa lama di rumah.</p>",
+                keywords: "sayur, hijau, tips, pasar"
+            },
+            "2": {
+                title: "Cara Menyimpan Buah di Kulkas agar Tahan Lebih Lama",
+                image: "https://images.unsplash.com/photo-1543168256-418816c7a36c?q=80&w=400&h=200&fit=crop",
+                meta: "Dipublikasi: 5 Oktober 2025",
+                content: "<p>Simpan buah di rak tengah kulkas dalam wadah bernapas, pisahkan buah yang menghasilkan etilen (seperti pisang) dari yang sensitif.</p>",
+                keywords: "buah, kulkas, penyimpanan, etilen"
+            },
+            "3": {
+                title: "Ciri-ciri Buah yang Sudah Mulai Rusak",
+                image: "https://images.unsplash.com/photo-1590959375944-abd886e37c00?q=80&w=400&h=200&fit=crop",
+                meta: "Dipublikasi: 1 Oktober 2025",
+                content: "<p>Tanda-tanda awal: perubahan warna, bau asam, tekstur lembek, atau bercak jamur. Kenali agar bisa diselamatkan lebih awal.</p>",
+                keywords: "rusak, busuk, ciri-ciri, jamur"
+            },
+            "4": {
+                title: "Memanfaatkan Sisa Sayur agar Tidak Terbuang",
+                image: "https://images.unsplash.com/photo-1546538490-ae055ec032a2?q=80&w=400&h=200&fit=crop",
+                meta: "Dipublikasi: 20 September 2025",
+                content: "<p>Gunakan sisa sayur untuk kaldu, tumisan, atau simpan potongan untuk koki berikutnya. Bekukan jika perlu.</p>",
+                keywords: "sisa, sayur, memasak, kaldu"
+            }
+        };
+
+        // --- 3. UI UTILITIES (Modal/Loading) ---
+
+        function showLoading(message = "Menganalisis...") {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingOverlay').querySelector('p').textContent = message;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showAlert(title, message, callback) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            const okBtn = document.getElementById('modalOkBtn');
+
+            const handler = () => {
+                modal.style.display = 'none';
+                okBtn.removeEventListener('click', handler);
+                if (callback) callback();
+            };
+
+            okBtn.addEventListener('click', handler);
+            modal.style.display = 'flex';
+        }
+
+        // --- 4. NAVIGATION & UI LOGIC ---
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+
+            window.scrollTo(0, 0); // Always scroll to top on page change
+            
+            // Re-render relevant data on navigation
+            if (pageId === 'history') renderFullHistory();
+            if (pageId === 'education') renderEducationCards(Object.values(ARTICLE_DATA));
+
+            // Reset Check page to step 1 (upload)
+            if (pageId === 'check') {
+                resetCheckPage();
+                document.getElementById('checkRecentHistory').innerHTML = '';
+                renderRecentHistory('checkRecentHistory', 1);
+            }
+
+            // Update home page history
+            if (pageId === 'home') {
+                 document.getElementById('homeRecentHistory').innerHTML = '';
+                 renderRecentHistory('homeRecentHistory', 2);
+            }
+        }
+
+        function setupNavigation() {
+            document.getElementById('menuBtn').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.add('active');
+                document.getElementById('sidebarOverlay').classList.add('active');
+            });
+
+            document.getElementById('closeSidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            document.getElementById('sidebarOverlay').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            });
+
+            document.querySelectorAll('.nav-link, .view-more').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page.toLowerCase();
+                    if (page) switchPage(page);
+                });
+            });
+
+            document.getElementById('checkFreshnessBtn').addEventListener('click', () => switchPage('check'));
+            document.getElementById('detailBackBtn').addEventListener('click', () => switchPage('history'));
+        }
+
+        // --- 5. HISTORY & DATA RENDERING (FIRESTORE) ---
+
+        function setupHistoryListeners() {
+            if (!isAuthReady || !db || !userId) return;
+
+            const collectionPath = `/artifacts/${appId}/users/${userId}/analysis_history`;
+            const q = query(collection(db, collectionPath));
+
+            // Listener for all history for the History page
+            onSnapshot(q, (snapshot) => {
+                fullHistoryData = [];
+                snapshot.forEach(doc => {
+                    fullHistoryData.push({ id: doc.id, ...doc.data() });
+                });
+                fullHistoryData.sort((a, b) => b.timestamp - a.timestamp);
+
+                // Update home and history pages with the new data
+                if (document.getElementById('home-page').classList.contains('active')) {
+                    renderRecentHistory('homeRecentHistory', 2);
+                }
+                if (document.getElementById('history-page').classList.contains('active')) {
+                    renderFullHistory();
+                }
+            }, (error) => {
+                console.error("Error fetching full history:", error);
+            });
+        }
+
+        function renderCard(data) {
+            const statusInfo = statusStyleMap[data.status] || { label: 'Unknown', class: 'secondary', fillClass: 'secondary' };
+            const card = document.createElement('div');
+            card.className = `analysis-card ${statusInfo.class} clickable`;
+            card.dataset.id = data.id;
+
+            // Use the stored base64 image or a generic placeholder
+            const imageSrc = data.imageData || `https://placehold.co/60x60/${data.status === 'fresh' ? '10B981' : (data.status === 'rotten' ? 'EF4444' : 'FBBF24')}/FFFFFF?text=${data.fruitType.substring(0, 1).toUpperCase()}`;
+
+            card.innerHTML = `
+                <div class="card-left">
+                    <div class="status-label ${statusInfo.class}-label">${statusInfo.label}</div>
+                    <h3 class="card-title">${data.fruitType.charAt(0).toUpperCase() + data.fruitType.slice(1)}</h3>
+                    <p class="card-date">${data.purchaseDate}</p>
+                </div>
+                <img src="${imageSrc}" alt="${data.fruitType}" class="card-image">
+            `;
+            card.addEventListener('click', () => renderDetail(data));
+            return card;
+        }
+
+        function renderRecentHistory(containerId, limitCount) {
+            const container = document.getElementById(containerId);
+            const historyToShow = fullHistoryData.slice(0, limitCount);
+            container.innerHTML = '';
+
+            if (historyToShow.length === 0) {
+                 container.innerHTML = `<div class="text-center text-gray-400 p-4">Belum ada riwayat analisis.</div>`;
+                 return;
+            }
+
+            historyToShow.forEach(data => {
+                container.appendChild(renderCard(data));
+            });
+        }
+
+        function renderFullHistory() {
+            const container = document.getElementById('fullHistoryList');
+            container.innerHTML = '';
+
+            if (fullHistoryData.length === 0) {
+                 container.innerHTML = `<div class="text-center text-gray-400 p-4">Tidak ada riwayat. Mulai cek pertama Anda!</div>`;
+                 return;
+            }
+
+            fullHistoryData.forEach(data => {
+                container.appendChild(renderCard(data));
+            });
+        }
+
+        async function saveAnalysis(data) {
+            if (!db || !userId) {
+                console.error("Firestore not initialized or user not logged in.");
+                return;
+            }
+            try {
+                const collectionPath = `/artifacts/${appId}/users/${userId}/analysis_history`;
+                await addDoc(collection(db, collectionPath), {
+                    ...data,
+                    timestamp: Date.now()
+                });
+                console.log("Analysis saved to Firestore.");
+            } catch (e) {
+                console.error("Error saving document: ", e);
+            }
+        }
+
+        // --- 6. IMAGE AND CHECK FLOW LOGIC ---
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                imageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('uploadSection').style.display = 'none';
+                    document.getElementById('imagePreview').style.display = 'flex';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetCheckPage() {
+            imageFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = 'https://placehold.co/200x200/CCCCCC/333333?text=Foto'; // Reset image
+            // Reset form fields
+            document.getElementById('fruitType').value = '';
+            document.getElementById('storageMethod').value = '';
+            document.getElementById('purchaseDate').value = new Date().toISOString().substring(0, 10);
+        }
+
+
+        function setupCheckListeners() {
+            // Set default date to today
+            document.getElementById('purchaseDate').value = new Date().toISOString().substring(0, 10);
+
+            // Handle file input clicks
+            document.getElementById('galleryBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+            document.getElementById('cameraBtn').addEventListener('click', () => document.getElementById('cameraInput').click());
+
+            document.getElementById('fileInput').addEventListener('change', handleImageUpload);
+            document.getElementById('cameraInput').addEventListener('change', handleImageUpload);
+
+            document.getElementById('retakeBtn').addEventListener('click', resetCheckPage);
+
+            document.getElementById('proceedBtn').addEventListener('click', () => {
+                if (imageFile) {
+                    switchPage('form');
+                } else {
+                    showAlert('Kesalahan', 'Silakan unggah atau ambil gambar terlebih dahulu.');
+                }
+            });
+
+            document.getElementById('backBtn').addEventListener('click', () => switchPage('check'));
+
+            document.getElementById('checkBtn').addEventListener('click', handlePrediction);
+        }
+
+        async function handlePrediction() {
+            const fruitType = document.getElementById('fruitType').value;
+            const storageMethod = document.getElementById('storageMethod').value;
+            const purchaseDate = document.getElementById('purchaseDate').value;
+
+            if (!imageFile) {
+                showAlert('Kesalahan', 'Foto tidak ditemukan. Silakan kembali dan unggah ulang.');
+                switchPage('check');
+                return;
+            }
+
+            if (!fruitType || !storageMethod || !purchaseDate) {
+                showAlert('Peringatan', 'Mohon lengkapi semua bidang pada formulir.');
+                return;
+            }
+
+            showLoading();
+
+            const formData = new FormData();
+            formData.append("file", imageFile);
+
+            try {
+                // Fetch call with exponential backoff for robustness
+                const MAX_RETRIES = 3;
+                let attempts = 0;
+                let response = null;
+
+                while (attempts < MAX_RETRIES) {
+                    try {
+                        response = await fetch(API_URL, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (response.ok) break; // Success, break retry loop
+                    } catch (error) {
+                        console.error(`Attempt ${attempts + 1} failed:`, error);
+                        attempts++;
+                        if (attempts < MAX_RETRIES) {
+                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000)); // Exponential backoff
+                        } else {
+                            throw new Error("API call failed after multiple retries.");
+                        }
+                    }
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                hideLoading();
+
+                // Determine freshness status based on confidence (Example logic)
+                let status;
+                let tips = 'Tidak ada tips khusus yang diberikan untuk komoditas ini.';
+                let freshnessPercentage = Math.round(result.confidence * 100);
+
+                if (result.label.toLowerCase().includes('fresh') || result.label.toLowerCase().includes('segar')) {
+                    status = 'fresh';
+                    tips = 'Barang ini masih sangat segar! Simpan sesuai anjuran di tempat kering dan sejuk.';
+                    freshnessPercentage = Math.min(95, freshnessPercentage); // Cap at 95% for 'fresh'
+                } else if (result.label.toLowerCase().includes('moderate') || result.label.toLowerCase().includes('cukup')) {
+                    status = 'moderate';
+                    tips = 'Tingkat kesegaran sedang. Konsumsi segera atau simpan di kulkas untuk memperpanjang umur simpannya.';
+                    freshnessPercentage = Math.min(50, freshnessPercentage); // Cap at 50% for 'moderate'
+                } else if (result.label.toLowerCase().includes('rotten') || result.label.toLowerCase().includes('busuk')) {
+                    status = 'rotten';
+                    tips = 'Barang ini sudah membusuk. Sebaiknya tidak dikonsumsi. Pelajari tips penyimpanan untuk masa depan.';
+                    freshnessPercentage = Math.min(20, freshnessPercentage); // Cap at 20% for 'rotten'
+                } else {
+                     // Use confidence score for status if label is generic
+                    if (freshnessPercentage > 80) {
+                        status = 'fresh';
+                    } else if (freshnessPercentage > 40) {
+                        status = 'moderate';
+                    } else {
+                        status = 'rotten';
+                    }
+                }
+
+                const finalResult = {
+                    id: crypto.randomUUID(),
+                    fruitType: fruitType,
+                    storageMethod: storageMethodMap[storageMethod],
+                    purchaseDate: purchaseDate,
+                    apiLabel: result.label,
+                    confidence: result.confidence,
+                    status: status,
+                    freshness: freshnessPercentage,
+                    tips: tips,
+                    imageData: document.getElementById('previewImg').src // Base64 data for display
+                };
+
+                // Estimate rotten date (very simplistic calculation for demo)
+                const purchase = new Date(purchaseDate);
+                const daysToRot = (100 - freshnessPercentage) / 10;
+                purchase.setDate(purchase.getDate() + Math.max(1, Math.round(daysToRot)));
+                finalResult.estimatedRottenDate = purchase.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                // Save to Firestore
+                saveAnalysis(finalResult);
+
+                // Display result
+                renderDetail(finalResult);
+
+            } catch (error) {
+                hideLoading();
+                console.error("Prediction Error:", error);
+                showAlert('Kesalahan', 'Gagal mendapatkan prediksi dari server. Pastikan backend berjalan dan URL API sudah benar.');
+            }
+        }
+
+        function renderDetail(data) {
+            const statusInfo = statusStyleMap[data.status] || { label: 'Unknown', class: 'secondary', fillClass: 'secondary' };
+
+            // Update Header/Title/Status
+            document.getElementById('detailTitle').textContent = data.fruitType.charAt(0).toUpperCase() + data.fruitType.slice(1);
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.textContent = statusInfo.label;
+            statusEl.className = `detail-status ${statusInfo.class}`;
+
+            // Update Info
+            document.getElementById('infoPurchaseDate').textContent = data.purchaseDate;
+            document.getElementById('infoStorageMethod').textContent = data.storageMethod;
+
+            // Update Image
+            document.getElementById('detailImage').src = data.imageData;
+
+            // Update Freshness Bar
+            const freshnessFill = document.getElementById('freshnessFill');
+            freshnessFill.style.width = `${data.freshness}%`;
+            freshnessFill.className = `freshness-fill ${statusInfo.fillClass}`;
+            
+            document.getElementById('freshnessText').innerHTML = `Confidence: ${data.confidence.toFixed(2)} (${data.apiLabel}) <br>Estimasi Busuk: ${data.estimatedRottenDate}`;
+
+            // Update Tips Section
+            const tipsContainer = document.getElementById('detailTips');
+            tipsContainer.innerHTML = `
+                <div class="tips-section">
+                    <div class="tips-header">
+                        <span class="tips-icon">⭐</span>
+                        <p class="tips-title">Berdasarkan prediksi model, kesegaran item ini adalah ${data.freshness}%.</p>
+                    </div>
+                </div>
+                <div class="tips-section">
+                    <div class="tips-header">
+                        <span class="tips-icon">💡</span>
+                        <p class="tips-title">Tips & Rekomendasi</p>
+                    </div>
+                    <p class="tips-text">${data.tips}</p>
+                </div>
+            `;
+
+            switchPage('detail');
+        }
+
+        // --- 7. EDUCATION LOGIC ---
+        function renderArticleCard(article, id) {
+             const articleEl = document.createElement('article');
+             articleEl.className = 'education-card-large clickable';
+             articleEl.dataset.article = id;
+             articleEl.innerHTML = `
+                 <img src="${article.image}" onerror="this.src='https://placehold.co/80x80/60A5FA/FFFFFF?text=Artikel'" alt="Article" class="article-image">
+                 <div class="article-content">
+                     <h3>${article.title}</h3>
+                     <p>${article.content.substring(3, 100).split('</p>')[0].trim()}...</p>
+                 </div>
+             `;
+             articleEl.addEventListener('click', function(){
+                 const id = this.dataset.article;
+                 const a = ARTICLE_DATA[id];
+                 if(!a) return;
+                 // fill article page
+                 document.getElementById('articleTitle').textContent = a.title;
+                 document.getElementById('articleImage').src = a.image;
+                 document.getElementById('articleMeta').textContent = a.meta;
+                 document.getElementById('articleContent').innerHTML = a.content;
+                 switchPage('article');
+             });
+             return articleEl;
+        }
+
+        function renderEducationCards(filteredArticles) {
+            const listContainer = document.getElementById('articlesList');
+            const noResults = document.getElementById('noEducationResults');
+            listContainer.innerHTML = '';
+
+            if (filteredArticles.length === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+                filteredArticles.forEach((article, index) => {
+                    // Find the original key
+                    const id = Object.keys(ARTICLE_DATA).find(key => ARTICLE_DATA[key] === article);
+                    if (id) listContainer.appendChild(renderArticleCard(article, id));
+                });
+            }
+        }
+
+        function setupEducationSearch() {
+            const searchInput = document.getElementById('educationSearch');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query.length < 2) {
+                    renderEducationCards(Object.values(ARTICLE_DATA));
+                    return;
+                }
+                const filtered = Object.values(ARTICLE_DATA).filter(article =>
+                    article.title.toLowerCase().includes(query) ||
+                    article.content.toLowerCase().includes(query) ||
+                    article.keywords.toLowerCase().includes(query)
+                );
+                renderEducationCards(filtered);
+            });
+
+            document.getElementById('articleBackBtn').addEventListener('click', () => switchPage('education'));
+        }
+
+        // --- 8. SLIDER LOGIC ---
+        function setupSlider() {
+            const slider = document.getElementById('homeSlider');
+            const controls = document.getElementById('sliderControls');
+            const slides = slider.querySelectorAll('.slide-image');
+            const totalSlides = slides.length;
+            let currentIndex = 0;
+
+            // Generate dots
+            controls.innerHTML = '';
+            slides.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.className = 'slider-dot';
+                dot.dataset.slide = index;
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => {
+                    clearInterval(autoSlideInterval);
+                    goToSlide(index);
+                    autoSlideInterval = setInterval(nextSlide, 5000);
+                });
+                controls.appendChild(dot);
+            });
+
+            const dots = controls.querySelectorAll('.slider-dot');
+
+            function goToSlide(index) {
+                slider.style.transform = `translateX(-${index * 100}%)`;
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[index].classList.add('active');
+                currentIndex = index;
+            }
+
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                goToSlide(currentIndex);
+            }
+
+            let autoSlideInterval = setInterval(nextSlide, 5000);
+        }
+
+
+        // --- 9. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupNavigation();
+            setupCheckListeners();
+            setupEducationSearch();
+            setupSlider();
+            // Initial data load for home page
+            renderEducationCards(Object.values(ARTICLE_DATA).slice(0, 2));
+            renderRecentHistory('homeRecentHistory', 2);
+            renderRecentHistory('checkRecentHistory', 1);
+        });
+
+    </script>
 </body>
+</html>
