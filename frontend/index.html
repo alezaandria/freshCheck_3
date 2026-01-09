@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshCheck - Cek Kesegaran Buah & Sayur</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <p>Menganalisis kesegaran...</p>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <p class="modal-message" id="modalMessage" style="margin-bottom: 1.5rem; color: var(--text-light);"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="modalOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="close-sidebar" id="closeSidebar">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-page="home">
+                    <span class="nav-icon">🏠</span>
+                    <span>Beranda</span>
+                </a>
+                <a href="#" class="nav-link" data-page="check">
+                    <span class="nav-icon">✓</span>
+                    <span>Cek Kesegaran</span>
+                </a>
+                <a href="#" class="nav-link" data-page="history">
+                    <span class="nav-icon">📋</span>
+                    <span>Riwayat</span>
+                </a>
+                <a href="#" class="nav-link" data-page="education">
+                    <span class="nav-icon">📚</span>
+                    <span>Artikel Edukasi</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <main class="main-content">
+            <header class="header">
+                <button class="menu-btn" id="menuBtn">☰</button>
+                <div class="logo-container">
+                    <span class="logo-fresh">Fresh</span><span class="logo-check">Check!</span>
+                </div>
+                <a href="#" class="profile-link" data-page="profile">
+                    <img src="https://placehold.co/38x38/FF9A2E/FFFFFF?text=P" alt="Profile" class="profile-img">
+                </a>
+            </header>
+
+            <div class="pages-container">
+                <div class="page active" id="home-page">
+                    <div class="slider-container">
+                        <div class="slider" id="homeSlider">
+                            <img alt="Fresh vegetables" class="slide-image" src="https://images.unsplash.com/photo-1542838132-841961e6c382?q=80&w=1974&auto=format&fit=crop">
+                            <img alt="Fresh fruits" class="slide-image" src="https://images.unsplash.com/photo-1596707328574-8a4073d84358?q=80&w=1932&auto=format&fit=crop">
+                            <img alt="Fresh greens" class="slide-image" src="https://images.unsplash.com/photo-1550980482-1264b975877c?q=80&w=1974&auto=format&fit=crop">
+                        </div>
+                        <div class="slider-controls" id="sliderControls"></div>
+                    </div>
+
+                    <div class="welcome-section">
+                        <p class="welcome-subtitle">Freshness isn't luck, it's choice.</p>
+                        <h1 class="welcome-title">Selamat Datang di</h1>
+                        <h1 class="welcome-title brand-title">
+                            <span class="brand-fresh">Fresh</span><span class="brand-check">Check!</span>
+                        </h1>
+                    </div>
+
+                    <div class="btn-center">
+                        <button class="btn btn-primary btn-large" id="checkFreshnessBtn">
+                            Cek Kesegaran
+                        </button>
+                    </div>
+
+                    <section class="analysis-section">
+                        <div class="section-header">
+                            <h2>Riwayat analisis terbaru</h2>
+                            <button class="view-more" data-page="history">
+                                <span>Lihat Semua</span>
+                                <div class="view-more-icon"></div>
+                            </button>
+                        </div>
+                        <div class="analysis-cards" id="homeRecentHistory">
+                            <div style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada riwayat analisis.</div>
+                        </div>
+                    </section>
+
+                    <section class="education-section">
+                        <div class="section-header">
+                            <h2>Artikel edukasi terbaru</h2>
+                            <button class="view-more" data-page="education">
+                                <span>Lihat Semua</span>
+                                <div class="view-more-icon"></div>
+                            </button>
+                        </div>
+                        <div class="education-cards" id="homeEducationCards">
+                            </div>
+                    </section>
+                </div>
+
+                <div class="page" id="check-page">
+                    <div class="step-indicator" id="stepIndicator1">
+                        <div class="step active"><div class="step-number">1</div></div>
+                        <div class="step-line"></div>
+                        <div class="step"><div class="step-number">2</div></div>
+                    </div>
+
+                    <div class="upload-section" id="uploadSection">
+                        <div class="upload-title">
+                            <h2>Unggah foto Buah/Sayur!</h2>
+                            <div class="fruit-emoji">🍎 🥬</div>
+                        </div>
+                        <button class="btn btn-primary btn-large upload-btn" id="cameraBtn">
+                            <span class="btn-icon">📷</span> Buka kamera
+                        </button>
+                        <button class="btn btn-secondary btn-large upload-btn" id="galleryBtn">
+                            <span class="btn-icon">🖼️</span> Pilih dari galeri
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;">
+                    </div>
+
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+                        <div class="preview-row">
+                            <img id="previewImg" src="https://placehold.co/200x200/CCCCCC/333333?text=Foto" alt="Preview Image">
+                            <button class="btn btn-small btn-secondary" id="retakeBtn">Ganti</button>
+                        </div>
+                        <button class="btn btn-primary btn-large" id="proceedBtn" style="margin-top: 20px;">Lanjutkan &rarr;</button>
+                    </div>
+
+                    <section class="analysis-section">
+                        <div class="section-header">
+                            <h2>Riwayat terbaru</h2>
+                        </div>
+                        <div class="analysis-cards" id="checkRecentHistory">
+                             <div style="text-align: center; color: var(--text-light); padding: 20px;">Belum ada riwayat.</div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="page" id="form-page">
+                    <div class="step-indicator" id="stepIndicator2">
+                        <div class="step completed"><div class="step-number">✓</div></div>
+                        <div class="step-line"></div>
+                        <div class="step active"><div class="step-number">2</div></div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="fruitType">Jenis Buah / Sayur</label>
+                            <select class="form-select" id="fruitType">
+                                <option value="">Pilih jenis...</option>
+                                <option value="apple">Apel</option>
+                                <option value="orange">Jeruk</option>
+                                <option value="cucumber">Timun</option>
+                                <option value="lettuce">Selada</option>
+                                <option value="tomato">Tomat</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="storageMethod">Metode Penyimpanan</label>
+                            <select class="form-select" id="storageMethod">
+                                <option value="">Pilih metode...</option>
+                                <option value="room">Suhu Ruangan</option>
+                                <option value="fridge">Kulkas</option>
+                                <option value="freezer">Freezer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchaseDate">Tanggal Pembelian</label>
+                            <div class="date-input">
+                                <input type="date" id="purchaseDate" class="form-input">
+                                <span class="date-icon">📅</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" id="backBtn">Kembali</button>
+                            <button class="btn btn-primary" id="checkBtn">Cek</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page" id="history-page">
+                    <h1 class="page-title">Riwayat Analisis</h1>
+                    <div class="analysis-cards full-width" id="fullHistoryList">
+                        <div style="text-align: center; color: var(--text-light); padding: 20px;">Tidak ada riwayat. Mulai cek pertama Anda!</div>
+                    </div>
+                </div>
+
+                <div class="page" id="education-page">
+                    <div class="education-banner">
+                        <h1 class="education-banner-title">Panduan & Tips Kesegaran</h1>
+                    </div>
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="educationSearch" placeholder="Cari artikel...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div class="articles-list" id="articlesList"></div>
+                     <p id="noEducationResults" style="display: none; text-align: center; color: var(--text-light); margin-top: 2rem;">
+                        Tidak ada artikel yang cocok.
+                    </p>
+                </div>
+
+                <div class="page" id="article-page">
+                    <div class="detail-header">
+                        <button class="back-btn" id="articleBackBtn">← Kembali</button>
+                    </div>
+                    <div class="article-detail">
+                        <img id="articleImage" src="https://placehold.co/400x200/CCCCCC/333333?text=Artikel" alt="Article Image" class="article-detail-image">
+                        <h1 id="articleTitle" class="detail-title"></h1>
+                        <p id="articleMeta" class="welcome-subtitle"></p>
+                        <div id="articleContent" class="detail-content" style="padding: 0;"></div>
+                    </div>
+                </div>
+
+                <div class="page" id="detail-page">
+                     <div class="detail-header">
+                        <button class="back-btn" id="detailBackBtn">← Kembali</button>
+                        <button class="btn btn-danger btn-small" id="deleteHistoryBtn">Hapus Riwayat</button> 
+                 </div>
+                    <div class="detail-content">
+                        <img id="detailImage" src="https://placehold.co/400x250/CCCCCC/333333?text=Hasil+Analisis" alt="Product" class="detail-image">
+                        <h1 id="detailTitle" class="detail-title"></h1>
+                        <p id="detailStatus" class="detail-status"></p>
+
+                        <div class="detail-info">
+                            <div class="info-row">
+                                <div class="info-item">
+                                    <p class="info-label">Tanggal Beli</p>
+                                    <p class="info-value" id="infoPurchaseDate"></p>
+                                </div>
+                                <div class="info-item">
+                                    <p class="info-label">Penyimpanan</p>
+                                    <p class="info-value" id="infoStorageMethod"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-freshness">
+                            <p class="detail-label">Indikator Kesegaran</p>
+                            <div class="freshness-bar">
+                                <div class="freshness-fill" id="freshnessFill"></div>
+                            </div>
+                            <p class="freshness-text" id="freshnessText"></p>
+                        </div>
+
+                        <div class="detail-tips" id="detailTips"></div>
+                        
+                    </div>
+                </div>
+
+                <div class="page" id="profile-page">
+                    <div id="welcome-section">
+                        <h1 class="welcome-title">Profil Pengguna</h1>
+                        <p class="welcome-subtitle">ID: <span id="displayUserId">...</span></p>
+                    </div>
+
+                    <div class="form-section">
+                        <form onsubmit="return false;">
+                            <div class="form-group">
+                                <label for="name">Nama</label>
+                                <input type="text" id="name" class="form-input" placeholder="Masukkan nama Anda">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" class="form-input" placeholder="Masukkan email Anda" disabled>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <template id="analysisCardTemplate">
+    <div class="analysis-card" data-id="">
+        <div class="card-image-container">
+            <img src="" alt="Hasil Analisis" class="card-image">
+        </div>
+        <div class="card-content">
+            <h3 class="card-title"></h3>
+            <p class="card-subtitle"></p>
+            <div class="card-status-dot"></div>
+            <span class="card-status-text"></span>
+            <span class="card-confidence"></span>
+            <button class="btn btn-detail">Lihat Detail</button>
+        </div>
+    </div>
+</template>
+<script type="module" src="script.js"></script>
+</body>
+</html>
