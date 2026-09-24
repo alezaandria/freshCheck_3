@@ -1,4 +1,4 @@
-# 🥬 FreshCheck
+# 🥬 FreshCheck - Project AI
 
 FreshCheck adalah aplikasi berbasis web yang memanfaatkan **AI** untuk membantu pengguna mengecek **kesegaran bahan makanan** (seperti buah, sayur, daging, dan ikan) berdasarkan **input gambar dan data pendukung**. Proyek ini dibuat untuk meningkatkan kesadaran masyarakat akan kualitas pangan serta membantu pengambilan keputusan sebelum mengonsumsi atau membeli bahan makanan.
 
@@ -90,6 +90,8 @@ Menjelaskan latar belakang aplikasi, tujuan, serta manfaat FreshCheck bagi pengg
 ## 🌐 Demo Website
 
 🔗 **Link Website:** https://graceful-donut-9a5abc.netlify.app/
-
+- Alexa
+- Kimiko
+- Vanessa
 
 ✨ *FreshCheck — Check before you eat.*
