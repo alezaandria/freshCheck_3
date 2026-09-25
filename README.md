@@ -12,7 +12,7 @@ FreshCheck adalah aplikasi berbasis web yang memanfaatkan **AI** untuk membantu 
 * Menggabungkan teknologi **Artificial Intelligence** dengan kebutuhan sehari-hari
 
 ---
-![Website Preview](frontend/freshcheck.png)
+<p align="center"> <img src="frontend/freshcheck.png" width="500"> </p>
 ## 🧠 Fitur Utama
 
 ### 1. Home
